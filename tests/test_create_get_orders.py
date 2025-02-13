@@ -1,7 +1,7 @@
 import pytest
 import allure
 from utils.api_client import APIClient
-from constants import APIEndpoints, TestData
+from constants import APIEndpoints, TestData, Ingredients
 
 
 @allure.epic("Заказы")
@@ -23,10 +23,10 @@ class TestGetUserOrdersEndpoint:
             response_json = response.json()
             assert response_json.get("success") is True, f"Ожидался success=True, но получен {response_json}"
             assert "name" in response_json, "В ответе отсутствует поле 'name'"
-            assert "order" in response_json and "number" in response_json["order"], "В ответе отсутствует 'order' или 'number'"
+            assert "order" in response_json and "number" in response_json[
+                "order"], "В ответе отсутствует 'order' или 'number'"
 
     @allure.story("Создание заказов")
-    @allure.title("Создание заказа с разными параметрами (авторизация, ингредиенты)")
     @pytest.mark.parametrize("auth, ingredients, expected_status, expected_message", TestData.ORDER_CASES)
     def test_create_order(self, test_user, auth, ingredients, expected_status, expected_message):
         """
@@ -34,6 +34,15 @@ class TestGetUserOrdersEndpoint:
         - С авторизацией / без авторизации
         - С валидными / пустыми / невалидными ингредиентами
         """
+        auth_status = "с авторизацией" if auth else "без авторизации"
+        ingredients_type = (
+            "валидные" if ingredients == Ingredients.VALID else
+            "пустые" if ingredients == Ingredients.EMPTY else
+            "невалидные"
+        )
+
+        allure.dynamic.title(f"Создание заказа ({auth_status}, ингредиенты: {ingredients_type})")
+
         headers = {"Authorization": test_user["token"], "Content-Type": "application/json"} if auth else None
         response = self.send_order_request(ingredients, headers)
 
@@ -84,7 +93,8 @@ class TestGetUserOrdersEndpoint:
             assert "orders" in orders_json, "Ответ не содержит списка заказов"
 
             user_orders = orders_json["orders"]
-            assert any(order["name"] == created_order["name"] for order in user_orders), "Созданный заказ отсутствует в списке заказов пользователя"
+            assert any(order["name"] == created_order["name"] for order in
+                       user_orders), "Созданный заказ отсутствует в списке заказов пользователя"
 
     @allure.story("Получение списка заказов без авторизации")
     @allure.title("Попытка получить заказы без авторизации")
