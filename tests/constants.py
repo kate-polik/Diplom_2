@@ -1,5 +1,0 @@
-API_URL = "https://stellarburgers.nomoreparties.site/api"
-REGISTER_ENDPOINT = "/auth/register"
-LOGIN_ENDPOINT = "/auth/login"
-USER_ENDPOINT = "/auth/user"
-ORDERS_ENDPOINT = "/orders"
