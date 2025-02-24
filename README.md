@@ -1,4 +1,4 @@
-# Тесты API Stellar Burgers
+# Дипломный проект. Задание 2: Тесты API Stellar Burgers
 
 ## Описание проекта
 Проект содержит автотесты для API сервиса **Stellar Burgers**.  
