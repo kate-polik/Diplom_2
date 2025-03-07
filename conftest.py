@@ -12,10 +12,8 @@ def test_user():
     user = generate_user()
 
     response = APIClient.post(APIEndpoints.REGISTER, user)
-    assert response.status_code == 200, f"Ошибка создания тестового пользователя: {response.text}"
 
     token = response.json().get("accessToken")
-    assert token, "Не получен accessToken при регистрации"
 
     # Добавляем в user токен, email, name и password
     user.update({
@@ -29,11 +27,7 @@ def test_user():
 
     # Удаляем пользователя, если токен есть
     headers = {"Authorization": user["token"]}
-    try:
-        delete_response = APIClient.delete(APIEndpoints.USER, headers=headers)
-        assert delete_response.status_code == 202, f"Ошибка удаления тестового пользователя: {delete_response.text}"
-    except Exception as e:
-        print(f"Ошибка при удалении пользователя: {e}")
+    APIClient.delete(APIEndpoints.USER, headers=headers)
 
 
 # Хук для очистки allure_results

@@ -1,57 +1,95 @@
-import pytest
 import allure
 from utils.api_client import APIClient
 from constants import APIEndpoints, TestData, Ingredients
 
 
 @allure.epic("Заказы")
-@allure.feature("Создание и получение заказов")
-class TestGetUserOrdersEndpoint:
-    """Тесты на создание и получение заказов"""
+@allure.feature("Создание заказов")
+class TestOrderEndpoint:
+    """Тесты для заказов"""
 
-    def send_order_request(self, ingredients, headers=None):
-        """Вспомогательный метод для отправки POST-запроса на создание заказа"""
-        return APIClient.post(APIEndpoints.ORDERS, {"ingredients": ingredients}, headers=headers)
+    @allure.story("Создание заказа с авторизацией и валидными ингредиентами")
+    @allure.title("Создание заказа (с авторизацией, валидные ингредиенты)")
+    def test_create_order_with_auth_valid_ingredients(self, test_user):
+        headers = {"Authorization": test_user["token"], "Content-Type": "application/json"}
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.VALID}, headers=headers)
 
-    def check_order_response(self, response, expected_status, expected_message=None):
-        """Вспомогательный метод для проверки ответа API"""
-        assert response.status_code == expected_status, f"Ожидался статус {expected_status}, но получен {response.status_code}"
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 200, f"Ожидался статус 200, но получен {response.status_code}"
 
-        if expected_message:
-            assert response.json() == expected_message, f"Ожидался ответ {expected_message}, но получен {response.json()}"
-        elif expected_status == 200:
+        with allure.step("Проверка успешности ответа"):
             response_json = response.json()
             assert response_json.get("success") is True, f"Ожидался success=True, но получен {response_json}"
+
+        with allure.step("Проверка наличия данных о заказе"):
             assert "name" in response_json, "В ответе отсутствует поле 'name'"
             assert "order" in response_json and "number" in response_json[
                 "order"], "В ответе отсутствует 'order' или 'number'"
 
-    @allure.story("Создание заказов")
-    @pytest.mark.parametrize("auth, ingredients, expected_status, expected_message", TestData.ORDER_CASES)
-    def test_create_order(self, test_user, auth, ingredients, expected_status, expected_message):
-        """
-        Тестирование создания заказа:
-        - С авторизацией / без авторизации
-        - С валидными / пустыми / невалидными ингредиентами
-        """
-        auth_status = "с авторизацией" if auth else "без авторизации"
-        ingredients_type = (
-            "валидные" if ingredients == Ingredients.VALID else
-            "пустые" if ingredients == Ingredients.EMPTY else
-            "невалидные"
-        )
+    @allure.story("Создание заказа без авторизации и валидными ингредиентами")
+    @allure.title("Создание заказа (без авторизации, валидные ингредиенты)")
+    def test_create_order_without_auth_valid_ingredients(self):
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.VALID}, headers=None)
 
-        allure.dynamic.title(f"Создание заказа ({auth_status}, ингредиенты: {ingredients_type})")
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 200, f"Ожидался статус 200, но получен {response.status_code}"
 
-        headers = {"Authorization": test_user["token"], "Content-Type": "application/json"} if auth else None
-        response = self.send_order_request(ingredients, headers)
+        with allure.step("Проверка успешности ответа"):
+            response_json = response.json()
+            assert response_json.get("success") is True, f"Ожидался success=True, но получен {response_json}"
 
-        with allure.step("Проверка ответа сервера"):
-            if expected_status == 500:
-                assert response.status_code == 500, f"Ожидался статус 500, но получен {response.status_code}"
-                assert "Internal Server Error" in response.text, "Ожидалось сообщение 'Internal Server Error'"
-            else:
-                self.check_order_response(response, expected_status, expected_message)
+        with allure.step("Проверка наличия данных о заказе"):
+            assert "name" in response_json, "В ответе отсутствует поле 'name'"
+            assert "order" in response_json and "number" in response_json[
+                "order"], "В ответе отсутствует 'order' или 'number'"
+
+    @allure.story("Создание заказа с авторизацией и пустым списком ингредиентов")
+    @allure.title("Создание заказа (с авторизацией, пустые ингредиенты)")
+    def test_create_order_with_auth_empty_ingredients(self, test_user):
+        headers = {"Authorization": test_user["token"], "Content-Type": "application/json"}
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.EMPTY}, headers=headers)
+
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 400, f"Ожидался статус 400, но получен {response.status_code}"
+
+        with allure.step("Проверка сообщения об ошибке"):
+            expected_message = {"success": False, "message": "Ingredient ids must be provided"}
+            assert response.json() == expected_message, f"Ожидался ответ {expected_message}, но получен {response.json()}"
+
+    @allure.story("Создание заказа с авторизацией и невалидными ингредиентами")
+    @allure.title("Создание заказа (с авторизацией, невалидные ингредиенты)")
+    def test_create_order_with_auth_invalid_ingredients(self, test_user):
+        headers = {"Authorization": test_user["token"], "Content-Type": "application/json"}
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.INVALID}, headers=headers)
+
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 500, f"Ожидался статус 500, но получен {response.status_code}"
+
+        with allure.step("Проверка сообщения об ошибке"):
+            assert "Internal Server Error" in response.text, "Ожидалось сообщение 'Internal Server Error'"
+
+    @allure.story("Создание заказа без авторизации и пустым списком ингредиентов")
+    @allure.title("Создание заказа (без авторизации, пустые ингредиенты)")
+    def test_create_order_without_auth_empty_ingredients(self):
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.EMPTY}, headers=None)
+
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 400, f"Ожидался статус 400, но получен {response.status_code}"
+
+        with allure.step("Проверка сообщения об ошибке"):
+            expected_message = {"success": False, "message": "Ingredient ids must be provided"}
+            assert response.json() == expected_message, f"Ожидался ответ {expected_message}, но получен {response.json()}"
+
+    @allure.story("Создание заказа без авторизации и невалидными ингредиентами")
+    @allure.title("Создание заказа (без авторизации, невалидные ингредиенты)")
+    def test_create_order_without_auth_invalid_ingredients(self):
+        response = APIClient.post(APIEndpoints.ORDERS, {"ingredients": Ingredients.INVALID}, headers=None)
+
+        with allure.step("Проверка статуса ответа"):
+            assert response.status_code == 500, f"Ожидался статус 500, но получен {response.status_code}"
+
+        with allure.step("Проверка сообщения об ошибке"):
+            assert "Internal Server Error" in response.text, "Ожидалось сообщение 'Internal Server Error'"
 
     @allure.story("Получение списка заказов пользователя")
     @allure.title("Получение заказов авторизованного пользователя")

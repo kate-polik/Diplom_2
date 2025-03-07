@@ -50,13 +50,18 @@ class TestUserData:
 
 class TestUserDataUpdate:
     """Тестовые данные пользователя"""
-    UPDATE_CASES = [
-        ({"email": "updated_test@example.com"}, "email", 200, None),
-        ({"name": "UpdatedUser"}, "name", 200, None),
-        ({"password": "NewPass123"}, "password", 200, None),
-        (
-        {"email": "unauthorized@example.com"}, "email", 401, {"success": False, "message": "You should be authorised"}),
-        ({"name": "UnauthorizedUser"}, "name", 401, {"success": False, "message": "You should be authorised"}),
-        ({"password": "UnauthorizedPass"}, "password", 401, {"success": False, "message": "You should be authorised"}),
-    ]
+
+    # Тестовые данные для успешного обновления
+    VALID_EMAIL = "updated_test@example.com"
+    VALID_NAME = "UpdatedUser"
+    VALID_PASSWORD = "NewPass123"
+
+    # Тестовые данные для неавторизованного обновления
+    UNAUTHORIZED_EMAIL = "unauthorized@example.com"
+    UNAUTHORIZED_NAME = "UnauthorizedUser"
+    UNAUTHORIZED_PASSWORD = "UnauthorizedPass"
+
+    # Ожидаемое сообщение об ошибке при попытке обновления без авторизации
+    UNAUTHORIZED_ERROR = {"success": False, "message": "You should be authorised"}
+
     REQUIRED_FIELDS = ["email", "password", "name"]

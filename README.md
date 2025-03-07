@@ -33,23 +33,22 @@ Diplom_2/
 - **Создание уникального пользователя** — `test_create_unique_user`
 - **Создание уже зарегистрированного пользователя** — `test_create_existing_user`
 - **Создание пользователя без обязательного поля** — `test_create_user_missing_field`
-- **Обновление данных пользователя** — `test_update_user_data`
-  - С авторизацией
-  - Без авторизации
-  - Проверка успешного изменения данных
-  - Проверка ошибки при отсутствии авторизации
+- **Обновление данных пользователя:**
+  - С авторизацией + Проверка успешного изменения данных  — `test_update_email_with_auth`, `test_update_name_with_auth`, `test_update_password_with_auth`
+  - Без авторизации + Проверка ошибки при отсутствии авторизации — `test_update_email_without_auth`, `test_update_name_without_auth`, `test_update_password_without_auth`
 
 ### **2. Тесты авторизации** (`test_auth.py`)  
 - **Авторизация с существующими учетными данными** — `test_login_existing_user`
 - **Авторизация с неверными данными** — `test_login_invalid_credentials`
 
 ### **3. Тесты создания и получения заказов** (`test_create_get_orders.py`)  
-- **Создание заказа** (`test_create_order`):  
-  - С авторизацией
-  - Без авторизации
-  - С ингредиентами
-  - Без ингредиентов
-  - С неверными идентификаторами ингредиентов
+- **Создание заказа**:  
+  - С авторизацией + С ингредиентами — `test_create_order_with_auth_valid_ingredients`
+  - С авторизацией + Без ингредиентов — `test_create_order_with_auth_empty_ingredients` 
+  - С авторизацией + С неверными идентификаторами ингредиентов — `test_create_order_with_auth_invalid_ingredients`
+  - Без авторизации + С ингредиентами — `test_create_order_without_auth_valid_ingredients` 
+  - Без авторизации + Без ингредиентов — `test_create_order_without_auth_empty_ingredients`
+  - Без авторизации + С неверными идентификаторами ингредиентов — `test_create_order_without_auth_invalid_ingredients`
 - **Получение заказов пользователя**:  
   - Авторизованный пользователь (`test_get_orders_with_auth`)
   - Неавторизованный пользователь (`test_get_orders_without_auth`)
